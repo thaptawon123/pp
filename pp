@@ -1,132 +1,114 @@
+-- [[ Ultimate Auto-Buy Seeds Hub ]] --
 local ScreenGui = Instance.new("ScreenGui")
 local MainFrame = Instance.new("Frame")
 local Title = Instance.new("TextLabel")
 local CloseBtn = Instance.new("TextButton")
-local BellBtn = Instance.new("TextButton")
-local ChiliBtn = Instance.new("TextButton")
+local ScrollFrame = Instance.new("ScrollingFrame")
 local UIListLayout = Instance.new("UIListLayout")
 
--- ตัวแปรสถานะ
-local buyBell = false
-local buyChili = false
+-- ตารางเก็บสถานะการเปิด/ปิด (Memory)
+local settings = {
+    ["WheatSeeds"] = false, ["CarrotSeeds"] = false, ["LettuceSeeds"] = false,
+    ["CucumberSeeds"] = false, ["OnionSeeds"] = false, ["BeetrootSeeds"] = false,
+    ["WatermelonSeeds"] = false, ["PumpkinSeeds"] = false, ["EggplantSeeds"] = false,
+    ["KabochaSeeds"] = false, ["BellPepperSeeds"] = false, ["ChiliPepperSeeds"] = false,
+    ["AntiAFK"] = true
+}
 
--- ตั้งค่าหน้าจอหลัก
+-- ตั้งค่า UI หลัก
+ScreenGui.Name = "UltimateSeedHub"
 ScreenGui.Parent = game:GetService("CoreGui")
-ScreenGui.Name = "AutoBuySystem"
 
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
-MainFrame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
-MainFrame.BorderSizePixel = 2
-MainFrame.Position = UDim2.new(0.5, -80, 0.5, -80)
-MainFrame.Size = UDim2.new(0, 160, 0, 150)
+MainFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+MainFrame.Position = UDim2.new(0.5, -100, 0.5, -150)
+MainFrame.Size = UDim2.new(0, 200, 0, 300)
 MainFrame.Active = true
-MainFrame.Draggable = true -- ลากได้
+MainFrame.Draggable = true
 
--- หัวข้อ (Title)
-Title.Name = "Title"
-Title.Parent = MainFrame
-Title.BackgroundTransparency = 1
-Title.Size = UDim2.new(1, -30, 0, 30)
-Title.Position = UDim2.new(0, 5, 0, 0)
-Title.Font = Enum.Font.SourceSansBold
-Title.Text = "Seed Auto-Buy"
+Title.Size = UDim2.new(1, -30, 0, 35)
+Title.Position = UDim2.new(0, 10, 0, 0)
+Title.Text = "SEED AUTO-BUY"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-Title.TextSize = 18
+Title.BackgroundTransparency = 1
 Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = MainFrame
 
--- ปุ่มกากบาท (Close/Destroy)
-CloseBtn.Name = "CloseBtn"
-CloseBtn.Parent = MainFrame
-CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-CloseBtn.Position = UDim2.new(1, -25, 0, 5)
-CloseBtn.Size = UDim2.new(0, 20, 0, 20)
-CloseBtn.Font = Enum.Font.SourceSansBold
+CloseBtn.Size = UDim2.new(0, 25, 0, 25)
+CloseBtn.Position = UDim2.new(1, -28, 0, 5)
 CloseBtn.Text = "X"
+CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
 CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseBtn.TextSize = 14
+CloseBtn.Parent = MainFrame
+CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 
--- จัดปุ่มกด (Layout)
-local ButtonContainer = Instance.new("Frame")
-ButtonContainer.Name = "ButtonContainer"
-ButtonContainer.Parent = MainFrame
-ButtonContainer.BackgroundTransparency = 1
-ButtonContainer.Position = UDim2.new(0, 0, 0, 40)
-ButtonContainer.Size = UDim2.new(1, 0, 1, -40)
+-- ส่วนของรายการปุ่ม (Scrolling)
+ScrollFrame.Parent = MainFrame
+ScrollFrame.Position = UDim2.new(0, 5, 0, 40)
+ScrollFrame.Size = UDim2.new(1, -10, 1, -50)
+ScrollFrame.BackgroundTransparency = 1
+ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 550) -- ปรับขนาดตามจำนวนปุ่ม
+ScrollFrame.ScrollBarThickness = 4
 
-UIListLayout.Parent = ButtonContainer
+UIListLayout.Parent = ScrollFrame
 UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-UIListLayout.Padding = UDim.new(0, 8)
+UIListLayout.Padding = UDim.new(0, 5)
 
--- ฟังก์ชันสร้างปุ่ม Toggle
-local function createBtn(text)
+-- ฟังก์ชันสร้างปุ่มควบคุม
+local function createButton(displayName, internalID)
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0.9, 0, 0, 40)
-    btn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    btn.Font = Enum.Font.SourceSans
-    btn.Text = text .. ": OFF"
+    btn.Size = UDim2.new(0.95, 0, 0, 35)
+    btn.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    btn.Text = displayName .. ": OFF"
     btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btn.TextSize = 16
-    btn.Parent = ButtonContainer
-    return btn
+    btn.Parent = ScrollFrame
+
+    btn.MouseButton1Click:Connect(function()
+        settings[internalID] = not settings[internalID]
+        btn.Text = displayName .. ": " .. (settings[internalID] and "ON" or "OFF")
+        btn.BackgroundColor3 = settings[internalID] and Color3.fromRGB(0, 150, 80) or Color3.fromRGB(50, 50, 50)
+    end)
 end
 
-BellBtn = createBtn("Bell Pepper")
-ChiliBtn = createBtn("Chili Pepper")
+-- สร้างปุ่มตามรายการในรูปภาพ
+createButton("Anti-AFK", "AntiAFK")
+createButton("Wheat", "WheatSeeds")
+createButton("Carrot", "CarrotSeeds")
+createButton("Lettuce", "LettuceSeeds")
+createButton("Cucumber", "CucumberSeeds")
+createButton("Onion", "OnionSeeds")
+createButton("Beetroot", "BeetrootSeeds")
+createButton("Watermelon", "WatermelonSeeds")
+createButton("Pumpkin", "PumpkinSeeds")
+createButton("Eggplant", "EggplantSeeds")
+createButton("Kabocha", "KabochaSeeds")
+createButton("Bell Pepper", "BellPepperSeeds")
+createButton("Chili Pepper", "ChiliPepperSeeds")
 
--- ลอจิกการซื้อ (Loops)
+-- ระบบ Loop การซื้อ (ทำงานทุก 2 วินาที)
 task.spawn(function()
-    while true do
-        if not ScreenGui.Parent then break end -- หยุดลูปถ้า UI โดนลบ
-        if buyBell then
-            game:GetService("ReplicatedStorage").Events.ItemPurchase:FireServer("BellPepperSeeds")
-        end
-        task.wait(2)
-    end
-end)
-
-task.spawn(function()
-    while true do
+    while task.wait(2) do
         if not ScreenGui.Parent then break end
-        if buyChili then
-            game:GetService("ReplicatedStorage").Events.ItemPurchase:FireServer("ChiliPepperSeeds")
+        for itemID, isEnabled in pairs(settings) do
+            if isEnabled and itemID ~= "AntiAFK" then
+                game:GetService("ReplicatedStorage").Events.ItemPurchase:FireServer(itemID)
+            end
         end
-        task.wait(2)
     end
 end)
 
--- ปุ่มคลิกเหตุการณ์
-BellBtn.MouseButton1Click:Connect(function()
-    buyBell = not buyBell
-    BellBtn.Text = "Bell: " .. (buyBell and "ON" or "OFF")
-    BellBtn.BackgroundColor3 = buyBell and Color3.fromRGB(0, 120, 0) or Color3.fromRGB(60, 60, 60)
+-- ระบบ Anti-AFK
+game:GetService("Players").LocalPlayer.Idled:Connect(function()
+    if settings.AntiAFK then
+        game:GetService("VirtualUser"):CaptureController()
+        game:GetService("VirtualUser"):ClickButton2(Vector2.new())
+    end
 end)
 
-ChiliBtn.MouseButton1Click:Connect(function()
-    buyChili = not buyChili
-    ChiliBtn.Text = "Chili: " .. (buyChili and "ON" or "OFF")
-    ChiliBtn.BackgroundColor3 = buyChili and Color3.fromRGB(0, 120, 0) or Color3.fromRGB(60, 60, 60)
-end)
-
--- ปุ่มปิดลบทิ้งถาวร
-CloseBtn.MouseButton1Click:Connect(function()
-    ScreenGui:Destroy()
-end)
-
--- ปุ่มลัดซ่อน/แสดง (RightControl)
+-- ปุ่มลัดซ่อน UI (Right Control)
 game:GetService("UserInputService").InputBegan:Connect(function(input, gpe)
     if not gpe and input.KeyCode == Enum.KeyCode.RightControl then
         MainFrame.Visible = not MainFrame.Visible
     end
 end)
--- [[ Anti-AFK Script ]] --
-local VirtualUser = game:GetService("VirtualUser")
-
-game:GetService("Players").LocalPlayer.Idled:Connect(function()
-    -- เมื่อระบบตรวจพบว่าผู้เล่นอยู่นิ่ง (Idle)
-    VirtualUser:CaptureController()
-    VirtualUser:ClickButton2(Vector2.new()) -- จำลองการคลิกเมาส์ขวาเพื่อส่งสัญญาณว่ายังเล่นอยู่
-    print("Anti-AFK: ป้องกันการหลุดสำเร็จ!")
-end)
-
-print("Anti-AFK Loaded! คุณจะไม่หลุดจากการยืนเฉยๆ แล้ว")
