@@ -119,3 +119,14 @@ game:GetService("UserInputService").InputBegan:Connect(function(input, gpe)
         MainFrame.Visible = not MainFrame.Visible
     end
 end)
+-- [[ Anti-AFK Script ]] --
+local VirtualUser = game:GetService("VirtualUser")
+
+game:GetService("Players").LocalPlayer.Idled:Connect(function()
+    -- เมื่อระบบตรวจพบว่าผู้เล่นอยู่นิ่ง (Idle)
+    VirtualUser:CaptureController()
+    VirtualUser:ClickButton2(Vector2.new()) -- จำลองการคลิกเมาส์ขวาเพื่อส่งสัญญาณว่ายังเล่นอยู่
+    print("Anti-AFK: ป้องกันการหลุดสำเร็จ!")
+end)
+
+print("Anti-AFK Loaded! คุณจะไม่หลุดจากการยืนเฉยๆ แล้ว")
